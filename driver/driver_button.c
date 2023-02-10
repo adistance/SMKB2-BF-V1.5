@@ -130,7 +130,7 @@ uint32_t button_handle_msg(T_MENU_MSG *button_msg)
 			MLAPI_DeleteFTR(ERASE_ALL_FINGER, 0, &deleteId);
 			if(bKeyOn)
 				usbKeyCleanData();
-			background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_RESET_INIT);
+//			background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_RESET_INIT);
 			tuya_ble_storage_reset();
 //			resume_task(false);
 //			set_door_open_status(E_OPEN_SUC);

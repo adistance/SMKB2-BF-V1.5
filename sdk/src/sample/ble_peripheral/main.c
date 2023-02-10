@@ -147,7 +147,7 @@ static uint8_t adv_data[] =
 void app_le_gap_init(void)
 {
     /* Device name and device appearance */
-    uint8_t  device_name[GAP_DEVICE_NAME_LEN] = "smkb2-9318-0101";//"ML_REATEK8762D";       //name
+    uint8_t  device_name[GAP_DEVICE_NAME_LEN] = "SMKB2-9318-0101";//"ML_REATEK8762D";       //name
     uint16_t appearance = GAP_GATT_APPEARANCE_GENERIC_BLOOD_PRESSURE;//GAP_GATT_APPEARANCE_UNKNOWN;
     uint8_t  slave_init_mtu_req = false;
 

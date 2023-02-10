@@ -42,7 +42,7 @@ void gpio_hal_enter_dlps_config(void)
 {
 	Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
 	
-  if(GPIO_ReadInputDataBit(GPIO_GetPin(PAIR_HAL2))) 
+    if(GPIO_ReadInputDataBit(GPIO_GetPin(PAIR_HAL2))) 
 	{
 		System_WakeUpPinEnable(PAIR_HAL2, PAD_WAKEUP_POL_LOW, PAD_WK_DEBOUNCE_DISABLE);
 	}
@@ -55,7 +55,7 @@ void gpio_hal_enter_dlps_config(void)
 	if(door_open_status() == E_OPEN_NONE)
 	{
     Pad_Config(PAIR_HAL_POWER, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
-  }	
+  	}	
 }
 
 void gpio_hal_exit_dlps_config(void)

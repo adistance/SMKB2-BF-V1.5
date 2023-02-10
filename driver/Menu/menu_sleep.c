@@ -61,13 +61,7 @@ void menu_sleep_event_control(unsigned char eventBit, bool isEnable)
         switch(eventBit)                                            //按照需要设置时间的休眠时间
         {
             case MENU_SLEEP_EVENT_WAKEUP_BIT:
-//				if(bShort_Sleep_flag)
-//					{
-//						if(app_get_bt_real_state() == 0)
-//							menu_sleep_event_timeout[eventBit] = TIMEOUT_CNT_MS(200);
-//						else
-							menu_sleep_event_timeout[eventBit] = TIMEOUT_CNT_MS(SLEEP_TIMES);
-//					}
+				menu_sleep_event_timeout[eventBit] = TIMEOUT_CNT_MS(SLEEP_TIMES);
                 break;
             
             case MENU_SLEEP_EVENT_SETKEY_BIT:

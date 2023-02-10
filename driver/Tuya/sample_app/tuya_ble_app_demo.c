@@ -76,7 +76,7 @@ void *app_custom_task_handle = NULL;
 void *tuya_custom_queue_handle = NULL;
 
 tuya_ble_device_param_t device_param = {0};
-static const char device_local_name[] = "ML931";
+static const char device_local_name[] = "MLBLE";
 
 static const char auth_key_test[] 	= "Gv9lNhontqvObZdsQEK9nXtDqyp6XMaA";//"xGPGdIT7NAQcJ2oAK4kwB52npmBOf1Wn";Gv9lNhontqvObZdsQEK9nXtDqyp6XMaA
 static const char device_id_test[] 	= "jx014ffe78d6e4a0";//"tuya658091be1e07";jx014ffe78d6e4a0
