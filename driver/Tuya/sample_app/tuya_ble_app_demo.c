@@ -1038,8 +1038,9 @@ uint8_t tuya_ble_open(uint32_t u32Sn, uint8_t * pu8In, uint32_t u32InLen)
 	background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_MATCH_SUCCESS);
 	app_open = open_from_tuya;						//APP开锁标志位
 	Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);//开启HAL1输入
-	background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_LEFT);
 	background_msg_set_beep(150, 3);
+	os_delay(1500);
+	background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_LEFT);
 	
 	u8Send[0] = DP_ID_BLE_RECORD;
 	u8Send[1] = DP_TYPE_VALUE;
@@ -1574,7 +1575,12 @@ void tuya_ble_app_init(void)
 #if TUYA_BLE_SDK_TEST_ENABLE
     tuya_ble_sdk_test_init();
 #endif
-	
+
+//	memset(tuya_ble_current_para.auth_settings.device_id, 0 , sizeof(tuya_ble_current_para.auth_settings.device_id));
+//	memset(tuya_ble_current_para.auth_settings.mac_string, 0 , sizeof(tuya_ble_current_para.auth_settings.mac_string));
+//	memset(tuya_ble_current_para.auth_settings.auth_key, 0 , sizeof(tuya_ble_current_para.auth_settings.auth_key));
+//	tuya_ble_storage_save_auth_settings();
+
     TUYA_APP_LOG_INFO("tuya ble demo version : "TUYA_BLE_DEMO_VERSION_STR);
     TUYA_APP_LOG_INFO("app version : "TY_APP_VER_STR);
 

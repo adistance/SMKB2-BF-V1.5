@@ -233,10 +233,10 @@ static void fp_match(T_MENU_MSG *p_menu_msg)
 	
 	if(uResult)             // uResult = 获取匹配结果 1:成功;  0：失败
     {    			
-    	background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_MATCH_SUCCESS);		
-		background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_LEFT);
+    	background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_MATCH_SUCCESS);				
 		background_msg_set_beep(150, 3);
-		
+		os_delay(1500);
+		background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_LEFT);
 		if(uMatchId == 0 || uMatchId == 1)
 			bAdminFpFlag = true;
     }

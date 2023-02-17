@@ -7,7 +7,7 @@ extern "C" {
 #endif
 
 
-#define APP_PRODUCT_ID      "fqdyjmce"//"2ufgepff"//"xxxxxxxx"//"fqdyjmce"//"aaquyyzd"
+#define APP_PRODUCT_ID      "msn3f6wd"//"2ufgepff"//"xxxxxxxx"//"fqdyjmce"//"aaquyyzd"
 
 #define APP_BUILD_FIRMNAME  "tuya_ble_sdk_2.0_demo_rtl8762d"
 

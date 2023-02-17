@@ -348,10 +348,10 @@ static void driver_motor_back(void)                         //·´×ª
 			driver_motor_right_change_pwm(35);
 		else if (30 < battery_data < 50)
 			driver_motor_right_change_pwm(45);
-		else  if (10 < battery_data < 30)
+		else  if (20 < battery_data < 30)
 			driver_motor_right_change_pwm(55);
 		else
-			driver_motor_right_change_pwm(75);
+			driver_motor_right_change_pwm(100);
 		
     }
     else                                                   

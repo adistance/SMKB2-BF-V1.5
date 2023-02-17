@@ -32,6 +32,8 @@
 #include "test_mode.h"
 #include "os_sched.h"
 #include "tuya_ble_storage.h"
+#include "tuya_ble_utils.h"
+#include "tuya_ble_port_rtl8762.h"
 
 extern void *command_req_sem_handle;
 extern void *command_resp_sem_handle;
@@ -2002,7 +2004,7 @@ uint32_t ML_COMMAND_GetKey(P_ML_CMD_REQ_DATA pReq)
 	
 	return 0;
 }
-
+/*
 uint32_t ML_COMMAND_SetMac(P_ML_CMD_REQ_DATA pReq)
 {
 	if(pReq == NULL)
@@ -2019,6 +2021,41 @@ uint32_t ML_COMMAND_SetMac(P_ML_CMD_REQ_DATA pReq)
 	ML_COMMAND_RespStartCmd(pReq, &g_pstMLCmdResp, COMP_CODE_OK, NULL, 0);
 	tuya_ble_storage_save_auth_settings();
 	return 0;
+}*/
+
+uint32_t ML_COMMAND_SetMac(P_ML_CMD_REQ_DATA pReq)
+{
+ if(pReq == NULL)
+ {
+  ML_COMMAND_PRINT_INFO0("ML_COMMAND_SetMac input param error");
+  ML_COMMAND_RespStartCmd(pReq, &g_pstMLCmdResp, COMP_CODE_PARAMETER_ERROR, NULL, 0);
+  return 1;
+ }
+ uint8_t u8Temp[12] = {0};
+ tuya_ble_gap_addr_t bt_addr;
+  
+ memset(tuya_ble_current_para.auth_settings.mac_string, 0 , sizeof(tuya_ble_current_para.auth_settings.mac_string));
+ memcpy(tuya_ble_current_para.auth_settings.mac_string, pReq->req, sizeof(tuya_ble_current_para.auth_settings.mac_string));
+ tuya_ble_asciitohex(tuya_ble_current_para.auth_settings.mac_string, u8Temp);
+ memset(tuya_ble_current_para.auth_settings.mac, 0 , sizeof(tuya_ble_current_para.auth_settings.mac));
+ memcpy(tuya_ble_current_para.auth_settings.mac, u8Temp+1, sizeof(tuya_ble_current_para.auth_settings.mac));
+ memcpy(bt_addr.addr, u8Temp+1, sizeof(bt_addr.addr));
+ 
+ tuya_ble_inverted_array(bt_addr.addr,6);
+ if(tuya_ble_gap_addr_set(&bt_addr)!=TUYA_BLE_SUCCESS)
+    {
+        APP_PRINT_TRACE0("GAP ADDR SET failed!");
+    }
+    else
+    {
+        APP_PRINT_TRACE0("GAP ADDR SET SUCCESSED!");
+    }
+ 
+ 
+ ML_COMMAND_PRINT_INFO1("set mac is %b", TRACE_BINARY(sizeof(tuya_ble_current_para.auth_settings.mac_string), tuya_ble_current_para.auth_settings.mac_string));
+ ML_COMMAND_RespStartCmd(pReq, &g_pstMLCmdResp, COMP_CODE_OK, NULL, 0);
+ tuya_ble_storage_save_auth_settings();
+ return 0;
 }
 
 uint32_t ML_COMMAND_GetMac(P_ML_CMD_REQ_DATA pReq)
