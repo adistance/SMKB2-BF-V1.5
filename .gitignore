@@ -31,6 +31,7 @@
 *.zip
 *.ini
 *.dep
+*.cfa
 
 ;keil工程生成的不重要文件
 *.uvguix.*
