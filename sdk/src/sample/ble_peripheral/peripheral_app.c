@@ -285,7 +285,7 @@ void app_handle_conn_state_evt(uint8_t conn_id, T_GAP_CONN_STATE new_state, uint
                 le_get_conn_param(GAP_PARAM_CONN_TX_PHY_TYPE, &tx_phy, conn_id); 
 //                APP_PRINT_INFO2("GAP_CONN_STATE_CONNECTED: tx_phy %d, rx_phy %d",tx_phy,rx_phy);
 #endif  
-				driver_adc_start();	
+//				driver_adc_start();	
             }
             break;
 

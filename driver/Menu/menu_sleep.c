@@ -7,7 +7,7 @@ static unsigned int menu_sleep_event_flag = SLEEP_STATUS_INIT;
 static unsigned int menu_sleep_event_timeout[MENU_SLEEP_EVENT_COUNT+1] = {0};
 //bool bShort_Sleep_flag = 0;
 
-#define SLEEP_TIMES      1000  //12s
+#define SLEEP_TIMES      1000  //10s
 
 //时间单位：10ms
 #define TIMEOUT_CNT_MS(x)           (x/10)

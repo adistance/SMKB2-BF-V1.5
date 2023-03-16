@@ -81,6 +81,8 @@ static bool s_pressFlag = false;              //指纹按压下
 
 #define BT_TIMEOUT				1800  //180s
 static uint16_t s_u16BtTimeout = BT_TIMEOUT;
+unsigned int u32Voltage = 5200; 					 //设置电池电压初始值
+
 
 static void background_task(void *p_param);             //后台任务函数
 
@@ -143,12 +145,26 @@ static void loop_task(void *p_param)
 	uint8_t u8CheckCnt = 0;
 	uint8_t u8HalCnt = 0;
 	uint8_t u8pressFlagCnt = 0;
-	bool bVolShow = false;
+	bool bVolShow = true;
 	bool bDoorStatus = false;
-	
+
     DBG_DIRECT("[DIR] [TASK] loop_task start");		
-    
-    while(true)
+	
+//    flashReadBuffer(&ucLastBoundFlag, 0x86d000,1,0);			//读取上一次存储的绑定状态标志位
+
+	while(0)
+	{
+		Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);				
+		Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);//开启HAL1输入
+		os_delay(500);
+		
+		Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
+		Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
+		os_delay(500);
+	}
+
+	
+    while(1)
     {  	
     	app_wdg_reset();
 		eDoorStatus = door_open_status();
@@ -156,6 +172,25 @@ static void loop_task(void *p_param)
 #if DLPS_FLAG
         menu_sleep_event_timeout_cnt_decrease();
 #endif   	
+		if(bFirst_WakeUp)											//唤醒时读一次电池电压
+		{
+			bFirst_WakeUp = false;
+			driver_adc_start();
+			os_delay(20);
+			u32Voltage = s_VolAvg;									//保存唤醒时读取的电池电压,其余所有与电池电压有关的操作都用这个数据
+//			APP_PRINT_INFO1("[io_adc]  bFirst_WakeUp  s_VolAvg = %dmV",(uint32_t)s_VolAvg);
+			if(GPIO_ReadInputDataBit(GPIO_GetPin(PAIR_HAL1)) == 1)
+			{
+				set_b_HAL1_work_status(false);
+			}
+			else
+			{
+				set_b_HAL1_work_status(true);
+			}
+
+		}
+
+
     	if(SLEEP_STATUS_READY == menu_sleep_event_state_get())                           //全部事件都处理完
 	    {
 	    	//APP_PRINT_INFO0("sleep mode");
@@ -170,22 +205,20 @@ static void loop_task(void *p_param)
 			
 			suspend_task();						
 	    }	
-    	else if((!s_pressFlag && ((eDoorStatus == E_OPEN_NONE) || (eDoorStatus == E_OPEN_SUC))) && MLAPI_QueryFingerPresent())
+    	else if(((!s_pressFlag) && ((eDoorStatus == E_OPEN_NONE) || (eDoorStatus == E_OPEN_SUC))) && MLAPI_QueryFingerPresent())
     	{  		
-    		Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);
+//    		driver_hal_init();
 
+    		s_pressFlag = true;
+//			Motor_Rst_Flag = true;
+//			Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);//解锁霍尔只在有需要时打开
+//			Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);
 			u8Cnt = 0;
 			u16PressCnt = 0;
 			u8HalCnt = 0;
-			if(eDoorStatus == E_OPEN_SUC)
-			{
-				bVolShow = false;
-			}
-			else 
-			{
-				bVolShow = true;
-			}
-    		s_pressFlag = true;
+			u8pressFlagCnt = 0;
+		
+    		
     		//APP_PRINT_INFO0("press");
 			background_msg_set_fp(FP_MSG_SUBTYPE_MATH);
 			while(MLAPI_QueryFingerPresent());
@@ -196,27 +229,31 @@ static void loop_task(void *p_param)
 			u8Cnt++;
 //			bShort_Sleep_flag = 0;
 			e_if_app_open = Get_App_for_open_flag();
+		
+			
 			if(e_if_app_open == open_from_tuya)					//来自tuya的开锁指令
 			{
 				Set_App_for_open_flag(no_open_from_tuya);
-				//bVolShow = true;
 				u8HalCnt = 0;
+				u8pressFlagCnt = 0;
 			}
-			if(u8Cnt == 5)
-			{
-				driver_adc_start();
-			}
-			else if(u8Cnt >= 15)
+
+			if(u8Cnt == 15)
 			{	
 				u8Cnt = 0;				
-				//door_open_status_reset();
-				if(s_VolAvg < LOW_POWER_DATA && bVolShow)
+				
+//				APP_PRINT_INFO1("[io_adc]  u8Cnt == 15   u32Voltage = %dmV",u32Voltage);
+//				APP_PRINT_INFO1("[io_adc]  u8Cnt == 15   s_VolAvg = %dmV",(uint32_t)s_VolAvg);
+
+				if(u32Voltage < LOW_POWER_DATA && bVolShow)
 				{
+					
+//					APP_PRINT_INFO1("[io_adc]  voltage < LOW_POWER_DATA	 u32Voltage = %dmV",u32Voltage);
+//					APP_PRINT_INFO1("[io_adc]  voltage < LOW_POWER_DATA   s_VolAvg = %dmV",(uint32_t)s_VolAvg);
 					background_msg_set_beep(50, 5);
 					background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_POWER_LOW);
 				}
 				bVolShow = false;
-				//background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_RIGHT);
 			}
 			
 	      //等待手指离开
@@ -259,10 +296,23 @@ static void loop_task(void *p_param)
 	        }
 			
 			u8pressFlagCnt ++;
-			if(u8pressFlagCnt == 5)
+			if(u8pressFlagCnt == 3)
+			{
+				if(Motor_Rst_Flag)
+				{
+					GPIO_INTConfig(GPIO_GetPin(PAIR_HAL1), DISABLE);
+					GPIO_MaskINTConfig(GPIO_GetPin(PAIR_HAL1), ENABLE);
+					
+					Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
+					Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_DISABLE, PAD_OUT_LOW);
+					Motor_Rst_Flag = false;
+				}				
+			}
+			
+			if(u8pressFlagCnt == 10)
 			{
 				u8pressFlagCnt = 0;
-				s_pressFlag = false;	
+				s_pressFlag = false;
 			}
 	        u16PressCnt = 0;      
 	      }	
@@ -273,6 +323,8 @@ static void loop_task(void *p_param)
 		{
 			door_open_status_reset();
 //			bShort_Sleep_flag = 1;
+			set_b_HAL1_work_status(false);
+			
 			menu_sleep_event_control(MENU_SLEEP_EVENT_WAKEUP_BIT, true);
 		}
 	bDoorStatus = hal_get_door_status();
@@ -280,50 +332,42 @@ static void loop_task(void *p_param)
 	{
 		u8HalCnt++;
 		if(u8HalCnt % 10 == 0)
-			menu_sleep_event_control(MENU_SLEEP_EVENT_WAKEUP_BIT, true);
-		
-		if(u8HalCnt >= 50)
+			menu_sleep_event_control(MENU_SLEEP_EVENT_WAKEUP_BIT, true);		
+		if(u8HalCnt == 50)
 		{
-			u8HalCnt = 0;
- 			set_b_HAL1_work_status(false);
+			bVolShow = true;
+			u8HalCnt = 0;			
 			background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_RIGHT);
 		}
 	}
 	else if(GPIO_ReadInputDataBit(GPIO_GetPin(PAIR_HAL2)))
 	{
 		u8HalCnt = 0;
-		//set_b_HAL1_work_status(true);
 		Set_hal_door_status(false);				//表示电机不在闭锁状态了
 	}
-		if(app_get_bt_real_state() == 2) //蓝牙连接着
+	
+	if(app_get_bt_real_state() == 2) //蓝牙连接着
+	{
+		menu_sleep_event_control(MENU_SLEEP_EVENT_WAKEUP_BIT, true);
+		s_u16BtTimeout--;
+		if(s_u16BtTimeout == 0)
 		{
-			menu_sleep_event_control(MENU_SLEEP_EVENT_WAKEUP_BIT, true);
-			s_u16BtTimeout--;
-			if(s_u16BtTimeout == 0)
-			{
-				s_u16BtTimeout = BT_TIMEOUT;
-				//APP_PRINT_INFO0("connect timeout, disconnect now!!!!");
-				app_ble_disconnect();
-			}
-
-			u8CheckCnt++;
-			if(u8CheckCnt == 25)
-			{
-				if(eDoorStatus == E_OPEN_NONE)
-				{
-					driver_adc_start();
-				}
-			}
-			else if(u8CheckCnt == 33)
-			{
-				u8CheckCnt = 0;
-				tuya_ble_get_battery();
-			}
+			s_u16BtTimeout = BT_TIMEOUT;
+			//APP_PRINT_INFO0("connect timeout, disconnect now!!!!");
+			app_ble_disconnect();
 		}
+
+		u8CheckCnt++;
+		
+		if(u8CheckCnt == 33)
+		{
+			u8CheckCnt = 0;
+			tuya_ble_get_battery();
+		}
+	}
 		else
 			s_u16BtTimeout = BT_TIMEOUT;
 		
-				
 		os_delay(100);
     }
 

@@ -12,7 +12,8 @@
 
 bool b_HAL_Check_Motor_Status = true;         //true为霍尔检测到磁铁，false未检测到
 bool b_HAL_Check_Door_Status = true; 	      //true：闭锁状态			false：非闭锁状态
-volatile static bool b_HAL1_work;
+bool b_HAL1_work = false;
+bool bFirst_WakeUp = true;						//true：系统刚唤醒     		false：非初次唤醒
 
 bool get_b_HAL1_work_status(void)
 {
@@ -40,6 +41,7 @@ void gpio_hal_pad_config(void)
 
 void gpio_hal_enter_dlps_config(void)
 {
+	Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
 	Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
 	
     if(GPIO_ReadInputDataBit(GPIO_GetPin(PAIR_HAL2))) 
@@ -61,8 +63,12 @@ void gpio_hal_enter_dlps_config(void)
 void gpio_hal_exit_dlps_config(void)
 {
     Pad_Config(PAIR_HAL_POWER, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
+	Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
 	Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);
 	Pad_Config(PAIR_HAL2, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);
+	GPIO_INTConfig(GPIO_GetPin(PAIR_HAL1), ENABLE); 
+	GPIO_MaskINTConfig(GPIO_GetPin(PAIR_HAL1), DISABLE);
+	bFirst_WakeUp = true;
 //	if(door_open_status() == E_OPEN_NONE)
 //	{
 //		set_b_HAL1_work_status = false;
@@ -72,12 +78,14 @@ void gpio_hal_exit_dlps_config(void)
 void driver_hal_init(void)
 { 
 	Pad_Config(PAIR_HAL_POWER, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
+	Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
 	Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);
 	Pad_Config(PAIR_HAL2, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);
 	
 	Pinmux_Config(PAIR_HAL1, DWGPIO);
 	Pinmux_Config(PAIR_HAL2, DWGPIO);
 	Pinmux_Config(PAIR_HAL_POWER, DWGPIO);
+	Pinmux_Config(BAT_EN_HAL1_POW, DWGPIO);
 	
     RCC_PeriphClockCmd(APBPeriph_GPIO, APBPeriph_GPIO_CLOCK, ENABLE);
  
@@ -89,7 +97,7 @@ void driver_hal_init(void)
     GPIO_InitStruct.GPIO_ITTrigger  = GPIO_INT_Trigger_EDGE;
     GPIO_InitStruct.GPIO_ITPolarity = GPIO_INT_POLARITY_ACTIVE_LOW;
     GPIO_InitStruct.GPIO_ITDebounce = GPIO_INT_DEBOUNCE_ENABLE;
-    GPIO_InitStruct.GPIO_DebounceTime = 10;
+    GPIO_InitStruct.GPIO_DebounceTime = 1;
     GPIO_Init(&GPIO_InitStruct);
 
     GPIO_InitStruct.GPIO_Pin        = GPIO_GetPin(PAIR_HAL2);
@@ -104,6 +112,15 @@ void driver_hal_init(void)
 
 
 	GPIO_InitStruct.GPIO_Pin		= GPIO_GetPin(PAIR_HAL_POWER);
+	GPIO_InitStruct.GPIO_Mode		= GPIO_Mode_OUT;
+	GPIO_InitStruct.GPIO_ITCmd		= DISABLE;
+	//GPIO_InitStruct.GPIO_ITTrigger	= GPIO_INT_Trigger_EDGE;
+	//GPIO_InitStruct.GPIO_ITPolarity = GPIO_INT_POLARITY_ACTIVE_LOW;
+	//GPIO_InitStruct.GPIO_ITDebounce = GPIO_INT_DEBOUNCE_ENABLE;
+	//GPIO_InitStruct.GPIO_DebounceTime = 10;
+	GPIO_Init(&GPIO_InitStruct);
+
+	GPIO_InitStruct.GPIO_Pin		= GPIO_GetPin(BAT_EN_HAL1_POW);
 	GPIO_InitStruct.GPIO_Mode		= GPIO_Mode_OUT;
 	GPIO_InitStruct.GPIO_ITCmd		= DISABLE;
 	//GPIO_InitStruct.GPIO_ITTrigger	= GPIO_INT_Trigger_EDGE;
@@ -164,34 +181,19 @@ bool hal_set_motor_status(unsigned int data)
 
 void GPIO8_Handler(void)
 {
-    GPIO_INTConfig(GPIO_GetPin(PAIR_HAL1), DISABLE);
-    GPIO_MaskINTConfig(GPIO_GetPin(PAIR_HAL1), ENABLE);
-	//menu_sleep_event_control(MENU_SLEEP_EVENT_WAKEUP_BIT, true);
-		if (GPIO_ReadInputDataBit(GPIO_GetPin(PAIR_HAL1)))        //release
-    {
-    APP_PRINT_INFO0("release");
-      b_HAL_Check_Motor_Status = false;
-        GPIO->INTPOLARITY &= ~GPIO_GetPin(PAIR_HAL1);  //Polarity Low
-    }
-    else														//press
-    {
-    //APP_PRINT_INFO0("press");
-	  if(b_HAL1_work == true)
-	  	{
-	  		background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_OFF); 	//刹车
-			b_HAL_Check_Motor_Status = true;
-			Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
-	  	}
-	  else
-	  	{
-			b_HAL1_work = true;
-	  	}
-        GPIO->INTPOLARITY |= GPIO_GetPin(PAIR_HAL1);   //Polarity High
-    }
-
-    GPIO_ClearINTPendingBit(GPIO_GetPin(PAIR_HAL1));
-    GPIO_MaskINTConfig(GPIO_GetPin(PAIR_HAL1), DISABLE);
-    GPIO_INTConfig(GPIO_GetPin(PAIR_HAL1), ENABLE);
+  if(b_HAL1_work == true)
+  	{
+		Pad_Config(MOTOR_LEFT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
+		Pad_Config(MOTOR_RIGHT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH); //先刹车，再发消息，拉低管脚
+  		background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_OFF); 	
+		b_HAL_Check_Motor_Status = true;
+  	}
+  else
+  	{
+		b_HAL1_work = true;
+  	}
+  
+	GPIO_ClearINTPendingBit(GPIO_GetPin(PAIR_HAL1));
 }
 
 

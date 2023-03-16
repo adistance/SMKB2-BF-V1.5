@@ -26,11 +26,12 @@ static void *pMotorTimer;
 static uint16_t s_VolData[SAMPLE_AVG_MAX] = {0};		//电池电量数据
 static uint16_t s_MotorData[SAMPLE_AVG_MAX] = {0};		//电机堵转引脚数据
 
-float s_VolAvg = 0;		//电池电量平均值
+float s_VolAvg = 5000;		//电池电量平均值
 static float s_MotAvg = 0;		//电机堵转平均值
 static bool s_SampleFlag = false;	//采集好的标志
 //static uint8_t s_u8SampleCnt = 0;	//每次开启电机的当前采样次数
 static float s_fPerData = 0;   //保留之前的堵转值
+bool Motor_Rst_Flag = false;
 
 static E_DOOR_STATUS s_eDoorStatus = E_OPEN_NONE;  //开门状态
 extern bool b_HAL_Check_Motor_Status;
@@ -116,7 +117,8 @@ void driver_adc_init(void)
 
 void driver_adc_start(void)
 {
-	Pad_Config(BAT_PRE_PIN, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
+	Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
+	os_delay(100);
 	ADC_Cmd(ADC, ADC_CONTINUOUS_MODE, ENABLE);
 }
 
@@ -142,7 +144,7 @@ void gpio_motor_enter_dlps_config(void)
 	Pad_Config(MOTOR_PIN, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_DISABLE, PAD_OUT_HIGH);
 	Pad_Config(BAT_PIN, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_DISABLE, PAD_OUT_HIGH);
 	//Pad_Config(BAT_CHG_PIN, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);
-	Pad_Config(BAT_PRE_PIN, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
+	//Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
 }
 
 void gpio_motor_exit_dlps_config(void)
@@ -154,7 +156,7 @@ void gpio_motor_exit_dlps_config(void)
 	Pad_Config(BAT_PIN, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_NONE, PAD_OUT_DISABLE, PAD_OUT_LOW);
 	Pad_Config(MOTOR_PIN, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_NONE, PAD_OUT_DISABLE, PAD_OUT_LOW);
 	
-	Pad_Config(BAT_PRE_PIN, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
+//	Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
 }
 
 //充电引脚初始化
@@ -233,7 +235,7 @@ void driver_motor_init(void)
 	Pad_Config(BAT_PIN, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_NONE, PAD_OUT_DISABLE, PAD_OUT_LOW);
 	Pad_Config(MOTOR_PIN, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_NONE, PAD_OUT_DISABLE, PAD_OUT_LOW);
 	
-	Pad_Config(BAT_PRE_PIN, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
+//	Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
 		
 	//Pad_Config(BAT_CHARGE, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_LOW);
 	//gpio_charge_check_init();
@@ -276,7 +278,13 @@ static void driver_motor_timer(bool isEnable)               //定时器使能或禁能
 		if(s_eDoorStatus == E_OPEN_START)
 		{
 			s_eDoorStatus = E_OPEN_SUC;		
+			Motor_Rst_Flag = true;
 			tuya_ble_report_door_status(true);
+		}
+		else if(s_eDoorStatus == E_OPEN_SUC)
+		{
+			
+			Motor_Rst_Flag = true;
 		}
 		else if(s_eDoorStatus == E_CLOSE_START)
 		{
@@ -308,13 +316,16 @@ void door_open_status_reset(void)
 
 static void driver_motor_on(void)                           //正转
 {
+//	uint8_t battery_data;
+//	battery_data = get_battery_data();
 	//APP_PRINT_INFO0("driver_motor_on");
     if(st_motorParameter.ucMotorParaDir == 0)               //正常方向           
     {                                                      
         //管脚控制
-        //Pad_Config(MOTOR_LEFT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
-		driver_motor_left_change_pwm(100);
-		driver_motor_right_change_pwm(0);
+        Pad_Config(MOTOR_LEFT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
+		Pad_Config(MOTOR_RIGHT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
+//		driver_motor_left_change_pwm(100);
+//		driver_motor_right_change_pwm(0);
     }
     else                                                   
     {                                                       
@@ -344,12 +355,14 @@ static void driver_motor_back(void)                         //反转
         //Pad_Config(MOTOR_LEFT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
 		//Pad_Config(MOTOR_RIGHT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_HIGH);
 		driver_motor_left_change_pwm(0);
-		if(battery_data > 50)
-			driver_motor_right_change_pwm(35);
-		else if (30 < battery_data < 50)
-			driver_motor_right_change_pwm(45);
-		else  if (20 < battery_data < 30)
+		if(Motor_Rst_Flag)
+			driver_motor_right_change_pwm(40);
+		else if(battery_data > 50)
 			driver_motor_right_change_pwm(55);
+		else if (30 < battery_data < 50)
+			driver_motor_right_change_pwm(65);
+		else  if (20 < battery_data < 30)
+			driver_motor_right_change_pwm(75);
 		else
 			driver_motor_right_change_pwm(100);
 		
@@ -374,18 +387,22 @@ static void driver_motor_off(void)                          //停止转动
 	//APP_PRINT_INFO0("driver_motor_off");
     //管脚控制        
     //关电机的时候先拉高是起到快速停止的作用，然后拉低是起到降低正常时的功耗
-    //Pad_Config(MOTOR_LEFT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
-	//Pad_Config(MOTOR_RIGHT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH); 
-	driver_motor_left_change_pwm(100);
-	driver_motor_right_change_pwm(100);
+    Pad_Config(MOTOR_LEFT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
+	Pad_Config(MOTOR_RIGHT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH); 
+//	driver_motor_left_change_pwm(100);
+//	driver_motor_right_change_pwm(100);
 
-	os_delay(10);
+	os_delay(100);
 	st_motorParameter.ucMotorParaBlockCount = 0;
 	//s_eDoorStatus = E_OPEN_NONE;
     driver_motor_timer(false);
 	driver_motor_left_change_pwm(0);
 	driver_motor_right_change_pwm(0);
+	
+//	Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
+//	Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
 
+	
     return;
 }
 
@@ -400,6 +417,15 @@ void driver_motor_block_check(void)
 	if(s_SampleFlag)
 	{
 		s_SampleFlag = false;		
+//		if(1 == door_open_status())
+//		{
+//			APP_PRINT_INFO1("open_start_s_MotAvg is %d", (uint32_t)s_MotAvg);
+//		}
+//
+//		if(3 == door_open_status())
+//		{
+//			APP_PRINT_INFO1("close_start_s_MotAvg is %d", (uint32_t)s_MotAvg);
+//		}
 //		APP_PRINT_INFO1("123123s_MotAvg is %d", (uint32_t)s_MotAvg);
 
 		if( ((s_MotAvg>s_fPerData) ? (s_MotAvg-s_fPerData) : (s_fPerData-s_MotAvg)) > 1 )
@@ -408,14 +434,18 @@ void driver_motor_block_check(void)
 		}			
 		else 
 		{
-			if(s_MotAvg >= 70)    
+			if((3 == door_open_status()) && (s_MotAvg >= 70))    
 			{
 				st_motorParameter.ucMotorParaBlockCount++;				
 				if(st_motorParameter.ucMotorParaBlockCount >= 2)
 				{
 					//ledModeSet(EM_LED_CTRL_BLINK, EM_LED_GREEN, 30 , 1);
 					st_motorParameter.ucMotorParaBlockCount = 0;
-					//driver_motor_off();
+					//driver_motor_off();					
+					driver_motor_left_change_pwm(100);
+					driver_motor_right_change_pwm(100); 							//先刹车，再发消息出去，让rtos将motor的两个管脚状态设置为0
+//					background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_MOTOR_BACK);
+
 					background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_OFF);
 //					APP_PRINT_INFO1("123123st_motorCtrlInfo.ucMotorCtrlPreTime is %d", (uint32_t)st_motorCtrlInfo.ucMotorCtrlPreTime);
 				}
@@ -423,7 +453,7 @@ void driver_motor_block_check(void)
 				
 		}
 		s_fPerData = s_MotAvg;
-		Pad_Config(BAT_PRE_PIN, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
+//		Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
 		ADC_Cmd(ADC, ADC_CONTINUOUS_MODE, ENABLE);
 	}
 	
@@ -479,7 +509,7 @@ void driver_motor_time_handleCallback(void)     //10ms
     {       
 		background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_OFF);
     }
-    else if(st_motorParameter.ucMotorParaBlockMode == 1 && st_motorCtrlInfo.ucMotorCtrlPreTime >= 500)//堵转检测开启
+    else if(st_motorParameter.ucMotorParaBlockMode == 1 && st_motorCtrlInfo.ucMotorCtrlPreTime >= 300)//堵转检测开启
 	{
 		driver_motor_block_check();
 	}
@@ -574,21 +604,22 @@ uint8_t charge_check(void)
 
 
 
-//获取电池的百分比（6.0V对应100, 4.0V对应0，4.8V的时候进行低电压报警）
+//获取电池的百分比（6.0V对应100, 4.0V对应0，4.6V的时候进行低电压报警）
 uint8_t get_battery_data(void)
 {
 	uint8_t u8Vol = 0;
 	
-	if(s_VolAvg >= FULL_POWER_DATA) 
+	if(u32Voltage >= FULL_POWER_DATA) 
 		u8Vol = 100;
-	else if(s_VolAvg <= EMPTY_POWER_DATA)
+	else if(u32Voltage <= EMPTY_POWER_DATA)
 		u8Vol = 0;
 	else
-		u8Vol = (uint8_t)(((uint32_t)s_VolAvg - EMPTY_POWER_DATA) / 20);
+		u8Vol = (uint8_t)((u32Voltage - EMPTY_POWER_DATA) / 20);
+//		u8Vol = (uint8_t)(((uint32_t)u32Voltage - EMPTY_POWER_DATA) / 20);
 
 	if(u8Vol > 100)
 		u8Vol = 100;
-	APP_PRINT_INFO1("[io_adc]  voltage = %dmV",(uint32_t)s_VolAvg);
+//	APP_PRINT_INFO1("[io_adc]  voltage = %dmV",(uint32_t)s_VolAvg);
 	return u8Vol;
 }
 
@@ -676,7 +707,7 @@ void io_adc_voltage_calculate(void)
     memset(s_VolData, 0, sizeof(s_VolData));
    	memset(s_MotorData, 0, sizeof(s_MotorData));
 
-	Pad_Config(BAT_PRE_PIN, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
+//	Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
 }
 
 void ADC_Handler(void)
@@ -739,15 +770,18 @@ uint32_t background_msg_motor_handle(T_MENU_MSG *p_msg)
 	switch(p_msg->subtype)
 	{
 		case BACKGROUND_MSG_MOTOR_SUBTYPE_LEFT:
-			if(s_eDoorStatus == E_OPEN_NONE)
+			if(s_eDoorStatus == E_OPEN_NONE || s_eDoorStatus == E_OPEN_SUC)
 				s_eDoorStatus = E_OPEN_START;
+			Motor_Rst_Flag = true;
 			driver_motor_control(EM_MOTOR_CTRL_ON, workTimes);
 			break;
 
 		case BACKGROUND_MSG_MOTOR_SUBTYPE_RIGHT:
 			if(s_eDoorStatus == E_OPEN_SUC)
+			{
 				s_eDoorStatus = E_CLOSE_START;
-			workTimes = 1000;
+			}
+			workTimes = 500;
 			driver_motor_control(EM_MOTOR_CTRL_BACK, workTimes);
 			break;
 
@@ -756,6 +790,11 @@ uint32_t background_msg_motor_handle(T_MENU_MSG *p_msg)
 			driver_motor_control(EM_MOTOR_CTRL_OFF, workTimes);
 			break;
 
+		case BACKGROUND_MSG_MOTOR_SUBTYPE_RST:
+			workTimes = 100;
+			driver_motor_control(EM_MOTOR_CTRL_BACK, workTimes);
+			break;
+			
 		default:
 			break;
 	}

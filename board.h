@@ -44,7 +44,7 @@ extern "C" {
 #define PAIR_HAL2         P2_7         
 #define PAIR_HAL2_IRQ     GPIO23_IRQn   
 
-#define PAIR_HAL_POWER   P2_6
+#define PAIR_HAL_POWER   H_0
 
 #define PAIR_BUTTON         P1_0         
 #define PAIR_BUTTON_IRQ     GPIO8_IRQn
@@ -80,7 +80,7 @@ extern "C" {
 #define MOTOR_RIGHT         P0_1
 #define BAT_PIN 			P2_4	 //电池检测	
 #define MOTOR_PIN 			P2_5	//堵转引脚
-#define BAT_PRE_PIN			H_0		//电池检测需要先把这个引脚拉高
+#define BAT_EN_HAL1_POW			P2_6		//电池检测需要先把这个引脚拉高
 //电量满的标志引脚，充电时低电平，充满电高电平，没充电一直是高电平
 #define BAT_CHG_PIN			H_2		//低功耗时设置成输入上拉
 #define BAT_CHARGE          P2_6	//充电判断引脚

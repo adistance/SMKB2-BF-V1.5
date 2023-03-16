@@ -75,9 +75,9 @@
  *                              Constants
  *============================================================================*/
 /** @brief  Default minimum advertising interval when device is discoverable (units of 625us, 160=100ms) */
-#define DEFAULT_ADVERTISING_INTERVAL_MIN           1120//800//320
+#define DEFAULT_ADVERTISING_INTERVAL_MIN           1600//800//320
 /** @brief  Default maximum advertising interval */
-#define DEFAULT_ADVERTISING_INTERVAL_MAX           1120//800//320
+#define DEFAULT_ADVERTISING_INTERVAL_MAX           1600//800//320
 
 bool s_u8DlpsFlag = false;
 
@@ -147,7 +147,7 @@ static uint8_t adv_data[] =
 void app_le_gap_init(void)
 {
     /* Device name and device appearance */
-    uint8_t  device_name[GAP_DEVICE_NAME_LEN] = "SMKB2-9318-0101";//"ML_REATEK8762D";       //name
+    uint8_t  device_name[GAP_DEVICE_NAME_LEN] = "SMKB2-BF-msn3f6wd-0100";//"ML_REATEK8762D";       //name
     uint16_t appearance = GAP_GATT_APPEARANCE_GENERIC_BLOOD_PRESSURE;//GAP_GATT_APPEARANCE_UNKNOWN;
     uint8_t  slave_init_mtu_req = false;
 
@@ -300,12 +300,13 @@ void io_dlps_enter_cb(void)
     if(!s_u8DlpsFlag)
     {
     	s_u8DlpsFlag = true;
+		
 	    gpio_led_enter_dlps_config();	    
 		gpio_motor_enter_dlps_config();
 		gpio_hal_enter_dlps_config();
-		
 	    io_uart_dlps_enter();
-    }
+
+	}
 
 }
 

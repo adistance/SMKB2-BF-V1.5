@@ -1504,7 +1504,7 @@ void tuya_ble_disconnected_handler(void)
     {
         TUYA_BLE_LOG_ERROR("tuya_event_send disconnect handler error");
     }
-	background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_BLE_DISCONNECT_TIPS);
+	background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_BLE_DISCONNECT_TIPS);	
 }
 
 #if TUYA_BLE_LINK_LAYER_ENCRYPTION_SUPPORT_ENABLE

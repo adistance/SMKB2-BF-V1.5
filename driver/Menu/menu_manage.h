@@ -8,6 +8,7 @@
 
 #define LOCAL_LOGIC_EN          0               //是否有本地锁的逻辑
 
+extern unsigned int u32Voltage;
 typedef enum
 {
     MENU_MSG_TYPE_MAIN              = 1, /*主菜单类型*/
@@ -104,6 +105,7 @@ typedef enum
 	BACKGROUND_MSG_MOTOR_SUBTYPE_LEFT  	=  0,		//左转
 	BACKGROUND_MSG_MOTOR_SUBTYPE_RIGHT 	=  1,		//右转
 	BACKGROUND_MSG_MOTOR_SUBTYPE_OFF	=  2,		//停止
+	BACKGROUND_MSG_MOTOR_SUBTYPE_RST    = 3,		//补偿回转
 } T_BACKGROUND_MSG_MOTOR_SUBTYPE;
 
 //指纹类子类型

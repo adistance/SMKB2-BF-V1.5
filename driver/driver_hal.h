@@ -19,8 +19,8 @@ bool hal_set_motor_status(unsigned int data);
 void background_msg_set_hal(unsigned char subtype);
 
 
-
-
+extern bool bFirst_WakeUp;
+extern bool b_HAL1_work;
 
 
 

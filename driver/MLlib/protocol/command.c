@@ -2389,7 +2389,7 @@ void ML_COMMAND_CmdTypeMtProc(P_ML_CMD_REQ_DATA pReq)
 			break;
 
 		case CMD_MT_BAT_ADC_TEST:
-			COMMAND_BAT_ADC_Test(pReq);
+//			COMMAND_BAT_ADC_Test(pReq);
 			break;
     
         case CMD_MT_READ_BOARD_SERIES_NUM:

@@ -16,6 +16,8 @@
 #include "os_sched.h"
 #include "driver_hal.h"
 #include "tuya_ble_app_demo.h"
+#include "rtl876x_gpio.h"
+#include <board.h>
 
 
 #if 1
@@ -233,10 +235,22 @@ static void fp_match(T_MENU_MSG *p_menu_msg)
 	
 	if(uResult)             // uResult = 获取匹配结果 1:成功;  0：失败
     {    			
-    	background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_MATCH_SUCCESS);				
+    	
+		if(door_open_status() == E_OPEN_NONE || door_open_status() == E_OPEN_SUC)
+		set_door_open_status(E_OPEN_START);											//提前改掉锁的状态标志位，防止主程序自动拉低霍尔
+
+		Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);			
+		Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);//开启HAL1输入
+		
+		background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_MATCH_SUCCESS);				
 		background_msg_set_beep(150, 3);
-		os_delay(1500);
-		background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_LEFT);
+		os_delay(1200);
+		driver_motor_control(EM_MOTOR_CTRL_ON, 2000);
+		os_delay(20);
+
+		GPIO_INTConfig(GPIO_GetPin(PAIR_HAL1), ENABLE); 
+		GPIO_MaskINTConfig(GPIO_GetPin(PAIR_HAL1), DISABLE);
+		
 		if(uMatchId == 0 || uMatchId == 1)
 			bAdminFpFlag = true;
     }
@@ -273,7 +287,7 @@ uint32_t fingerprint_handle_msg(T_MENU_MSG *fp_msg)
 	FINGERPRINT_PRINT_INFO1("fp_msg->subtyp is 0x%x\n", fp_msg->subtype);
 	switch(fp_msg->subtype)
 	{
-		case FP_MSG_SUBTYPE_MATH:
+		case FP_MSG_SUBTYPE_MATH:			
 			fp_match(fp_msg);
 			break;
 

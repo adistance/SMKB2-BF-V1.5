@@ -65,13 +65,14 @@ typedef enum
 
 #define MOTOR_BLOCK_CHECK   0
 #define SAMPLE_AVG_MAX   8	    //8个采集数据来求平均值
-#define LOW_POWER_DATA   4600	//3.6V
+#define LOW_POWER_DATA   4600	//4.6V
 #define NOT_OPEN_POWER_DATA   4000	//3.4V 不开门电压
 #define EMPTY_POWER_DATA    4000  //3.5v
 
 #define CHARGE_POWER_DATA   6200	//充电电压基本都超过4.3V
 #define FULL_POWER_DATA		6000
 extern float s_VolAvg;
+extern bool Motor_Rst_Flag;
 
 #define MOTOR_PWM_LEFT_TIMER_NUM             TIM1
 #define MOTOR_PWM_OUT_LEFT_PIN_PINMUX        timer_pwm1

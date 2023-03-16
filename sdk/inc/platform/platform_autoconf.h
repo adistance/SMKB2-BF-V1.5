@@ -9,6 +9,9 @@
 * @version  v0.1
 *************************************************************************************************************
 */
+#include "board.h"
+
+
 #ifndef _PLATFORM_AUTOCONF_H_
 #define _PLATFORM_AUTOCONF_H_
 
@@ -17,8 +20,9 @@
     * @brief Platform build configuration
     * @{
     */
-
+#if !DEBUG_FLAG
 #define RELEASE_VERSION  //打开可以增加3K的buffer ram heap的空间，buffer ram heap原本只有4K空间
+#endif
 
 #ifdef RELEASE_VERSION  
 #define CHECK_STACK_OVERFLOW_ENABLE                 0
