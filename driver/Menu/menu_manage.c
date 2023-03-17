@@ -149,21 +149,17 @@ static void loop_task(void *p_param)
 	bool bDoorStatus = false;
 
     DBG_DIRECT("[DIR] [TASK] loop_task start");		
-	
-//    flashReadBuffer(&ucLastBoundFlag, 0x86d000,1,0);			//读取上一次存储的绑定状态标志位
 
-	while(0)
+	
+	if(GPIO_ReadInputDataBit(GPIO_GetPin(PAIR_HAL1)) == 1)			//上电时候读一次解锁霍尔的电平，判断是否需要让电机旋转两圈
 	{
-		Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);				
-		Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);//开启HAL1输入
-		os_delay(500);
-		
-		Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
-		Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
-		os_delay(500);
+		set_b_HAL1_work_status(false);
 	}
-
-	
+	else
+	{
+		set_b_HAL1_work_status(true);
+	}
+		
     while(1)
     {  	
     	app_wdg_reset();
@@ -172,22 +168,13 @@ static void loop_task(void *p_param)
 #if DLPS_FLAG
         menu_sleep_event_timeout_cnt_decrease();
 #endif   	
-		if(bFirst_WakeUp)											//唤醒时读一次电池电压
+		if(get_bFirst_WakeUp_status())											//唤醒时读一次电池电压
 		{
-			bFirst_WakeUp = false;
+			set_bFirst_WakeUp_status(false);
 			driver_adc_start();
 			os_delay(20);
 			u32Voltage = s_VolAvg;									//保存唤醒时读取的电池电压,其余所有与电池电压有关的操作都用这个数据
 //			APP_PRINT_INFO1("[io_adc]  bFirst_WakeUp  s_VolAvg = %dmV",(uint32_t)s_VolAvg);
-			if(GPIO_ReadInputDataBit(GPIO_GetPin(PAIR_HAL1)) == 1)
-			{
-				set_b_HAL1_work_status(false);
-			}
-			else
-			{
-				set_b_HAL1_work_status(true);
-			}
-
 		}
 
 
@@ -300,16 +287,12 @@ static void loop_task(void *p_param)
 			{
 				if(Motor_Rst_Flag)
 				{
-					GPIO_INTConfig(GPIO_GetPin(PAIR_HAL1), DISABLE);
-					GPIO_MaskINTConfig(GPIO_GetPin(PAIR_HAL1), ENABLE);
-					
-					Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
-					Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_DISABLE, PAD_OUT_LOW);
+					Hal_Set_IntConfig_Off();
 					Motor_Rst_Flag = false;
 				}				
 			}
 			
-			if(u8pressFlagCnt == 10)
+			if(u8pressFlagCnt == 5)
 			{
 				u8pressFlagCnt = 0;
 				s_pressFlag = false;

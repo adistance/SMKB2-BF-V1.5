@@ -984,20 +984,7 @@ uint8_t tuya_ble_remote_open(uint32_t u32Sn, uint8_t * pu8In, uint32_t u32InLen)
 	
 	app_open = open_from_tuya;						//APP开锁标志位
 
-	if(door_open_status() == E_OPEN_NONE || door_open_status() == E_OPEN_SUC)
-		set_door_open_status(E_OPEN_START);										//提前改掉锁的状态标志位，防止主程序自动拉低霍尔
-
-	Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);			
-	Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);//开启HAL1输入
-	
-	background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_MATCH_SUCCESS);				
-	background_msg_set_beep(150, 3);
-	os_delay(1200);
-	driver_motor_control(EM_MOTOR_CTRL_ON, 2000);
-	os_delay(20);
-
-	GPIO_INTConfig(GPIO_GetPin(PAIR_HAL1), ENABLE); 
-	GPIO_MaskINTConfig(GPIO_GetPin(PAIR_HAL1), DISABLE);
+	Action_open_lock();
 
 	u8Send[0] = DP_ID_REMOTE_RECORD;
 	u8Send[1] = DP_TYPE_VALUE;
@@ -1054,20 +1041,7 @@ uint8_t tuya_ble_open(uint32_t u32Sn, uint8_t * pu8In, uint32_t u32InLen)
 
 	app_open = open_from_tuya;						//APP开锁标志位
 
-	if(door_open_status() == E_OPEN_NONE || door_open_status() == E_OPEN_SUC)
-		set_door_open_status(E_OPEN_START);										//提前改掉锁的状态标志位，防止主程序自动拉低霍尔
-
-	Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);			
-	Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);//开启HAL1输入
-	
-	background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_MATCH_SUCCESS);				
-	background_msg_set_beep(150, 3);
-	os_delay(1200);
-	driver_motor_control(EM_MOTOR_CTRL_ON, 2000);
-	os_delay(20);
-
-	GPIO_INTConfig(GPIO_GetPin(PAIR_HAL1), ENABLE); 
-	GPIO_MaskINTConfig(GPIO_GetPin(PAIR_HAL1), DISABLE);
+	Action_open_lock();
 	
 	u8Send[0] = DP_ID_BLE_RECORD;
 	u8Send[1] = DP_TYPE_VALUE;

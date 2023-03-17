@@ -17,6 +17,10 @@ bool hal_get_door_status(void);
 void Set_hal_door_status(bool data);
 bool hal_set_motor_status(unsigned int data);
 void background_msg_set_hal(unsigned char subtype);
+void Hal_Set_IntConfig_Off(void);
+bool get_bFirst_WakeUp_status(void);
+void set_bFirst_WakeUp_status(bool data);
+void Action_open_lock(void);
 
 
 extern bool bFirst_WakeUp;

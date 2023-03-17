@@ -355,16 +355,12 @@ static void driver_motor_back(void)                         //·´×ª
         //Pad_Config(MOTOR_LEFT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
 		//Pad_Config(MOTOR_RIGHT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_HIGH);
 		driver_motor_left_change_pwm(0);
-		if(Motor_Rst_Flag)
-			driver_motor_right_change_pwm(40);
-		else if(battery_data > 50)
+		if(battery_data > 50)
 			driver_motor_right_change_pwm(55);
 		else if (30 < battery_data < 50)
 			driver_motor_right_change_pwm(65);
-		else  if (20 < battery_data < 30)
+		else  if (battery_data < 30)
 			driver_motor_right_change_pwm(75);
-		else
-			driver_motor_right_change_pwm(100);
 		
     }
     else                                                   

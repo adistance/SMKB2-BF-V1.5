@@ -27,6 +27,7 @@
 #include <trace.h>
 #include <os_timer.h>
 #include "rtl876x_tim.h"
+#include "os_sched.h"
 
 #include "board.h"
 #include "otp_config.h"

@@ -8,12 +8,24 @@
 #include <board.h>
 #include <trace.h>
 #include "menu_manage.h"
+#include "os_sched.h"
 
 
 bool b_HAL_Check_Motor_Status = true;         //true为霍尔检测到磁铁，false未检测到
 bool b_HAL_Check_Door_Status = true; 	      //true：闭锁状态			false：非闭锁状态
 bool b_HAL1_work = false;
 bool bFirst_WakeUp = true;						//true：系统刚唤醒     		false：非初次唤醒
+
+bool get_bFirst_WakeUp_status(void)
+{
+	return bFirst_WakeUp;
+}
+
+void set_bFirst_WakeUp_status(bool data)
+{
+	bFirst_WakeUp = data;
+}
+
 
 bool get_b_HAL1_work_status(void)
 {
@@ -31,6 +43,14 @@ void gpio_hal_pinmux_config(void)
 	Pinmux_Config(PAIR_HAL2, DWGPIO);
 }
 
+void Hal_Set_IntConfig_Off(void)
+{
+	GPIO_INTConfig(GPIO_GetPin(PAIR_HAL1), DISABLE);
+	GPIO_MaskINTConfig(GPIO_GetPin(PAIR_HAL1), ENABLE);
+	
+	Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
+	Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_ENABLE, PAD_OUT_LOW);
+}
 void gpio_hal_pad_config(void)
 {
 	Pad_Config(PAIR_HAL_POWER, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
@@ -68,7 +88,7 @@ void gpio_hal_exit_dlps_config(void)
 	Pad_Config(PAIR_HAL2, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);
 	GPIO_INTConfig(GPIO_GetPin(PAIR_HAL1), ENABLE); 
 	GPIO_MaskINTConfig(GPIO_GetPin(PAIR_HAL1), DISABLE);
-	bFirst_WakeUp = true;
+	set_bFirst_WakeUp_status(true);
 //	if(door_open_status() == E_OPEN_NONE)
 //	{
 //		set_b_HAL1_work_status = false;
@@ -178,7 +198,23 @@ bool hal_set_motor_status(unsigned int data)
 	}
   return b_HAL_Check_Motor_Status;
 }
+void Action_open_lock(void)
+{
+	if(door_open_status() == E_OPEN_NONE || door_open_status() == E_OPEN_SUC)
+		set_door_open_status(E_OPEN_START);											//提前改掉锁的状态标志位，防止主程序自动拉低霍尔
 
+	Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);			
+	Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);//开启HAL1输入
+	
+	background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_MATCH_SUCCESS);				
+	background_msg_set_beep(150, 3);
+	os_delay(1200);
+	driver_motor_control(EM_MOTOR_CTRL_ON, 2000);
+	os_delay(20);
+
+	GPIO_INTConfig(GPIO_GetPin(PAIR_HAL1), ENABLE); 
+	GPIO_MaskINTConfig(GPIO_GetPin(PAIR_HAL1), DISABLE);
+}
 void GPIO8_Handler(void)
 {
   if(b_HAL1_work == true)
