@@ -147,7 +147,7 @@ static void loop_task(void *p_param)
 	uint8_t u8pressFlagCnt = 0;
 	bool bVolShow = true;
 	bool bDoorStatus = false;
-
+	unsigned char Last_Motor_Status[1];
     DBG_DIRECT("[DIR] [TASK] loop_task start");		
 
 	
@@ -175,14 +175,21 @@ static void loop_task(void *p_param)
 			os_delay(20);
 			u32Voltage = s_VolAvg;									//保存唤醒时读取的电池电压,其余所有与电池电压有关的操作都用这个数据
 //			APP_PRINT_INFO1("[io_adc]  bFirst_WakeUp  s_VolAvg = %dmV",(uint32_t)s_VolAvg);
+			flashReadBuffer(Last_Motor_Status, 0x86D000, 4, 0);		//唤醒时读取之前存储的电机位置，用于判断电机是否需要转两圈
+			if(Last_Motor_Status[0] == false)
+			{
+				set_b_HAL1_work_status(false);
+			}
 		}
 
 
     	if(SLEEP_STATUS_READY == menu_sleep_event_state_get())                           //全部事件都处理完
 	    {
+	    	Last_Motor_Status[0] = get_b_HAL1_work_status();	//进入低功耗前将电机位置存储在flash，防止低功耗时间过长，系统丢失数据
+	    	flashWriteBuffer(Last_Motor_Status, 0x86D000,4, 0);
 	    	//APP_PRINT_INFO0("sleep mode");
 	    	s_pressFlag = false;
-	
+			
 	    	//le_adv_stop();	
 					
 	        //准备进入休眠
@@ -216,7 +223,12 @@ static void loop_task(void *p_param)
 			u8Cnt++;
 //			bShort_Sleep_flag = 0;
 			e_if_app_open = Get_App_for_open_flag();
-		
+
+			if(Motor_Rst_Flag)
+			{
+				Hal_Set_IntConfig_Off();
+				Motor_Rst_Flag = false;
+			}	
 			
 			if(e_if_app_open == open_from_tuya)					//来自tuya的开锁指令
 			{
@@ -224,7 +236,7 @@ static void loop_task(void *p_param)
 				u8HalCnt = 0;
 				u8pressFlagCnt = 0;
 			}
-
+			
 			if(u8Cnt == 15)
 			{	
 				u8Cnt = 0;				
@@ -282,17 +294,15 @@ static void loop_task(void *p_param)
 				}	
 	        }
 			
-			u8pressFlagCnt ++;
-			if(u8pressFlagCnt == 3)
-			{
-				if(Motor_Rst_Flag)
-				{
-					Hal_Set_IntConfig_Off();
-					Motor_Rst_Flag = false;
-				}				
-			}
 			
-			if(u8pressFlagCnt == 5)
+			
+			u8pressFlagCnt ++;
+//			if(u8pressFlagCnt == 5)
+//			{
+//							
+//			}
+			
+			if(u8pressFlagCnt == 8)
 			{
 				u8pressFlagCnt = 0;
 				s_pressFlag = false;

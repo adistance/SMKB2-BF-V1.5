@@ -304,7 +304,7 @@ void io_dlps_enter_cb(void)
 	    gpio_led_enter_dlps_config();	    
 		gpio_motor_enter_dlps_config();
 		gpio_hal_enter_dlps_config();
-	    io_uart_dlps_enter();
+//	    io_uart_dlps_enter();
 
 	}
 
@@ -315,12 +315,13 @@ void io_dlps_exit_init()
 	//app_le_set_adv_int(320);	
 	s_u8DlpsFlag = false;
 	gpio_sensor_exit_dlps_config();
-	gpio_led_exit_dlps_config();
+	
 	gpio_spi_exit_dlps_config();
 	gpio_motor_exit_dlps_config();
 	gpio_hal_exit_dlps_config();
 	
-	io_uart_dlps_exit();
+//	io_uart_dlps_exit();
+	gpio_led_exit_dlps_config();
 	//gpio_button_exit_dlps_config();
 }
 

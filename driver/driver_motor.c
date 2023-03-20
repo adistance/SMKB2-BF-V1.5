@@ -430,7 +430,7 @@ void driver_motor_block_check(void)
 		}			
 		else 
 		{
-			if((3 == door_open_status()) && (s_MotAvg >= 70))    
+			if((E_CLOSE_START == door_open_status()) && (s_MotAvg >= 70))    
 			{
 				st_motorParameter.ucMotorParaBlockCount++;				
 				if(st_motorParameter.ucMotorParaBlockCount >= 2)

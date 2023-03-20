@@ -1039,7 +1039,7 @@ uint8_t tuya_ble_open(uint32_t u32Sn, uint8_t * pu8In, uint32_t u32InLen)
 	TUYA_DEMO_PRINT_INFO1("tuya_ble_dp_data_send ret is 0x%x", ret);
 	
 
-	app_open = open_from_tuya;						//APP开锁标志位
+	Set_App_for_open_flag(open_from_tuya);						//APP开锁标志位
 
 	Action_open_lock();
 	
@@ -1143,9 +1143,7 @@ uint8_t tuya_ble_data_delawith(tuya_ble_dp_data_received_data_t *in)
 			break;
 
 		case DP_ID_BLE_OPEN:			
-			
-			Pad_Config(BAT_EN_HAL1_POW, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
-
+			if(door_open_status() == E_OPEN_NONE || door_open_status() == E_OPEN_SUC)
 			tuya_ble_open(u32Sn, in->p_data, (uint32_t)in->data_len);
 			break;
 
@@ -1153,7 +1151,8 @@ uint8_t tuya_ble_data_delawith(tuya_ble_dp_data_received_data_t *in)
 			tuya_ble_remote_config(u32Sn, in->p_data, (uint32_t)in->data_len);
 			break;
 	
-		case DP_ID_REMOTE_OPEN:
+		case DP_ID_REMOTE_OPEN:			
+			if(door_open_status() == E_OPEN_NONE || door_open_status() == E_OPEN_SUC)
 			tuya_ble_remote_open(u32Sn, in->p_data, (uint32_t)in->data_len);
 			break;
 
