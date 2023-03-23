@@ -444,7 +444,7 @@ void wakeup_config(void)
 //	driver_led_init();
 	driver_uart_init();
 	driver_motor_init();
-	
+	Sensor_Init();
 	driver_wdg_init();
 
 	T_MENU_MSG menMsg = {0};

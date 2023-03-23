@@ -253,6 +253,7 @@ uint8_t SENSOR_SetInverse_1(uint8_t *buffer, uint32_t length, uint8_t color);
 void SENSOR_Common(void);
 int32_t SENSOR_MegerFtr(void);
 extern void SENSOR_RecentIndexInit(void);
+bool check_sensor_int(void);
 
 #endif
 

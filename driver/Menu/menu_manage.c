@@ -191,10 +191,14 @@ static void loop_task(void *p_param)
 	    	s_pressFlag = false;
 			
 	    	//le_adv_stop();	
-					
+	    	
+			Sensor_Init();
+			
 	        //准备进入休眠
 			while(Sensor_Sleep()){};
-						
+			
+			check_sensor_int();	
+			
 			menu_sleep_event_timeout_cnt_decrease();
 			
 			suspend_task();						

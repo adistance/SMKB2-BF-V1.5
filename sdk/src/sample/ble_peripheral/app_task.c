@@ -165,6 +165,8 @@ void vTimerPeriodWakeupDlpsCallback(void *pxTimer)
 		wdg_feed();
 	}   
 	if(s_u8DlpsFlag)
+		
+		check_sensor_int();	
 		rtc_update_in_dlps();
     //APP_PRINT_INFO0("TimerPeriodWakeupDlps timeout!");
 }

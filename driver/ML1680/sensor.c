@@ -17,6 +17,9 @@
 //#include "iwdg.h"
 #include "menu_sleep.h"
 #include "app_task.h"
+#include "rtl876x_rcc.h"
+#include "rtl876x_wdg.h"
+#include "rtl876x_gpio.h"
 
 extern volatile uint8_t g_bWork;
 #if 0
@@ -2288,3 +2291,31 @@ sensor_comp_code Sensor_WaitAndCapture(uint32_t wait_time)
 
 	return SENSOR_COMP_CODE_NO_FINGER;
 }
+
+bool check_sensor_int(void)
+{
+ Pad_Config(SENSOR_INT_PIN, PAD_PINMUX_MODE, PAD_IS_PWRON, PAD_PULL_NONE, PAD_OUT_DISABLE, PAD_OUT_LOW);
+ Pinmux_Config(SENSOR_INT_PIN, DWGPIO);
+ 
+    RCC_PeriphClockCmd(APBPeriph_GPIO, APBPeriph_GPIO_CLOCK, ENABLE);
+
+   /// GPIO_InitTypeDef GPIO_InitStruct;
+   // GPIO_StructInit(&GPIO_InitStruct);
+   // GPIO_InitStruct.GPIO_Pin        = GPIO_GetPin(H_1);
+   // GPIO_InitStruct.GPIO_Mode       = GPIO_Mode_IN;
+   // GPIO_InitStruct.GPIO_ITCmd      = DISABLE;
+   // GPIO_Init(&GPIO_InitStruct);
+
+ if(GPIO_ReadInputDataBit(GPIO_GetPin(SENSOR_INT_PIN)))
+ {
+  WDG_SystemReset(RESET_ALL_EXCEPT_AON, RESET_REASON_HW);
+  return true;
+ }  
+ else
+ {
+  Pad_Config(SENSOR_INT_PIN, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_DOWN, PAD_OUT_DISABLE, PAD_OUT_LOW);
+  System_WakeUpPinEnable(SENSOR_INT_PIN, PAD_WAKEUP_POL_HIGH, PAD_WK_DEBOUNCE_DISABLE);
+  return false;
+ }  
+}
+
