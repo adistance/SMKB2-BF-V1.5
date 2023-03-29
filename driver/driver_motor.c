@@ -288,7 +288,7 @@ static void driver_motor_timer(bool isEnable)               //定时器使能或禁能
 		}
 		else if(s_eDoorStatus == E_CLOSE_START)
 		{
-			s_eDoorStatus = E_CLOSE_SUC;
+			s_eDoorStatus = E_CLOSE_SUC;			
 			background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_MOTOR_BACK);
 			tuya_ble_report_door_status(false);	
 		}
@@ -430,7 +430,7 @@ void driver_motor_block_check(void)
 		}			
 		else 
 		{
-			if((E_CLOSE_START == door_open_status()) && (s_MotAvg >= 70))    
+			if((s_eDoorStatus == E_CLOSE_START) && (s_MotAvg >= 70))    
 			{
 				st_motorParameter.ucMotorParaBlockCount++;				
 				if(st_motorParameter.ucMotorParaBlockCount >= 2)
@@ -439,9 +439,7 @@ void driver_motor_block_check(void)
 					st_motorParameter.ucMotorParaBlockCount = 0;
 					//driver_motor_off();					
 					driver_motor_left_change_pwm(100);
-					driver_motor_right_change_pwm(100); 							//先刹车，再发消息出去，让rtos将motor的两个管脚状态设置为0
-//					background_msg_set_led(BACKGROUND_MSG_LED_SUBTYPE_MOTOR_BACK);
-
+					driver_motor_right_change_pwm(100); 							//先刹车，再发消息出去，让rtos将motor的两个管脚状态设置为0				
 					background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_OFF);
 //					APP_PRINT_INFO1("123123st_motorCtrlInfo.ucMotorCtrlPreTime is %d", (uint32_t)st_motorCtrlInfo.ucMotorCtrlPreTime);
 				}
@@ -505,7 +503,7 @@ void driver_motor_time_handleCallback(void)     //10ms
     {       
 		background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_OFF);
     }
-    else if(st_motorParameter.ucMotorParaBlockMode == 1 && st_motorCtrlInfo.ucMotorCtrlPreTime >= 300)//堵转检测开启
+    else if(st_motorParameter.ucMotorParaBlockMode == 1 && st_motorCtrlInfo.ucMotorCtrlPreTime >= 300 && s_eDoorStatus == E_CLOSE_START)//堵转检测开启
 	{
 		driver_motor_block_check();
 	}
