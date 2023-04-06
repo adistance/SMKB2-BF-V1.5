@@ -9,7 +9,7 @@ extern "C" {
 
 #define APP_PRODUCT_ID      "msn3f6wd"//"2ufgepff"//"xxxxxxxx"//"fqdyjmce"//"aaquyyzd"
 
-#define APP_BUILD_FIRMNAME  "tuya_ble_sdk_2.0_demo_rtl8762d"
+#define APP_BUILD_FIRMNAME  "SMKB2_BF_ML9318_msn3f6wd"
 
 // firmware version 
 #define TY_APP_VER_NUM       0x0101   //ota升级会判断这个，每次发版本都要修改这里
