@@ -228,7 +228,7 @@ void GPIO8_Handler(void)
   	{
 		Pad_Config(MOTOR_LEFT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH);
 		Pad_Config(MOTOR_RIGHT, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_ENABLE, PAD_OUT_HIGH); //先刹车，再发消息，拉低管脚
-  		background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_OFF); 	
+		background_msg_set_motor(BACKGROUND_MSG_MOTOR_SUBTYPE_OFF);
 		b_HAL_Check_Motor_Status = true;
   	}
   else

@@ -22,7 +22,7 @@ extern "C" {
 #include "rtl876x_pinmux.h"
 
 #define DLPS_FLAG				1    //低功耗标志
-#define DEBUG_FLAG				0   //调试标志，打后能看到打印，但是sensor不能用，因为共用了引脚
+#define DEBUG_FLAG				0  //调试标志，打后能看到打印，但是sensor不能用，因为共用了引脚
 #define DLPS_BLE				0   //低功耗蓝牙广播
 #define BLE_DMZ					0    //使用大拇指蓝牙小程序，默认使用顶固小程序
 #define BLE_ML					1	//使用中性蓝牙小程序，默认使用顶固小程序

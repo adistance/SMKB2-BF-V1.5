@@ -437,14 +437,13 @@ void wakeup_config(void)
 	DBG_DIRECT("wakeup_config");
 
 	io_dlps_exit_init();
-	
 	driver_spi_init(); 
     driver_sensor_gpio_init();
 //	Sensor_Init();
 //	driver_led_init();
-	driver_uart_init();
+//	driver_uart_init();
 	driver_motor_init();
-	Sensor_Init();
+//	Sensor_Init();	
 	driver_wdg_init();
 
 	T_MENU_MSG menMsg = {0};

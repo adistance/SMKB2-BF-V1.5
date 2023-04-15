@@ -114,6 +114,7 @@ void resume_task(bool bStartBLE)
 	if(bStartBLE)
 	{
 		os_delay(50);
+		Sensor_Init();
 		//le_adv_start();
 	}	
 }
