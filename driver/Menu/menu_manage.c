@@ -231,7 +231,7 @@ static void loop_task(void *p_param)
 
 			if(Motor_Rst_Flag)
 			{
-				Hal_Set_IntConfig_Off();
+				Hal_Set_IntConfig_Off();						//解锁成功后，关闭霍尔开关的使能
 				Motor_Rst_Flag = false;
 			}	
 			
@@ -341,7 +341,7 @@ static void loop_task(void *p_param)
 	else if(GPIO_ReadInputDataBit(GPIO_GetPin(PAIR_HAL2)))
 	{
 		u8HalCnt = 0;
-		Set_hal_door_status(false);				//表示电机不在闭锁状态了
+		Set_hal_door_status(false);				//表示没有检测到锁盒盖上，闭锁倒计时不会开启
 	}
 	
 	if(app_get_bt_real_state() == 2) //蓝牙连接着

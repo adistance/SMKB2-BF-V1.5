@@ -215,7 +215,7 @@ void Action_open_lock(void)
 		Pad_Config(PAIR_HAL1, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);//开启HAL1输入
 		//再拉高一次，防止出现连续快速解锁时有概率被loop_task拉低霍尔的情况
 		driver_motor_control(EM_MOTOR_CTRL_ON, 2000);
-		os_delay(20);
+		os_delay(20);										//延时让电机转出霍尔感应范围再打开霍尔开关使能
 
 		GPIO_INTConfig(GPIO_GetPin(PAIR_HAL1), ENABLE); 
 		GPIO_MaskINTConfig(GPIO_GetPin(PAIR_HAL1), DISABLE);
@@ -255,7 +255,7 @@ void GPIO23_Handler(void)
     else														//press
     {
       APP_PRINT_INFO0("press");
-      Set_hal_door_status(true);			
+      Set_hal_door_status(true);									//标志位置1，表示锁盒已经关到位了，此时可以触发闭锁倒计时
 	  menu_sleep_event_control(MENU_SLEEP_EVENT_WAKEUP_BIT, true);
         GPIO->INTPOLARITY |= GPIO_GetPin(PAIR_HAL2);   //Polarity High
     }
