@@ -766,7 +766,7 @@ uint32_t background_msg_motor_handle(T_MENU_MSG *p_msg)
 		case BACKGROUND_MSG_MOTOR_SUBTYPE_LEFT:
 			if(s_eDoorStatus == E_OPEN_NONE || s_eDoorStatus == E_OPEN_SUC)
 				s_eDoorStatus = E_OPEN_START;
-			Motor_Rst_Flag = true;
+//			Motor_Rst_Flag = true;
 			driver_motor_control(EM_MOTOR_CTRL_ON, workTimes);
 			break;
 
