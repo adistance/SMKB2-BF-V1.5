@@ -137,12 +137,23 @@ void menu_reset_bt_timeout(void)
 	s_u16BtTimeout = BT_TIMEOUT;
 }
 
+//电压值赋值操作
+void Set_u32Voltage_Value(unsigned int Voltage)
+{
+	u32Voltage = Voltage;
+}
+unsigned int Get_u32Voltage_Value(void)
+{
+	return u32Voltage;
+}
+
+
 static void loop_task(void *p_param)
 {
 	uint8_t u8Cnt = 0;
 	uint16_t u16PressCnt = 0;		//计算按压时间
 	E_DOOR_STATUS eDoorStatus;
-	eAPP_for_open e_if_app_open = no_open_from_tuya;
+//	eAPP_for_open e_if_app_open = no_open_from_tuya;
 	uint8_t u8CheckCnt = 0;
 	uint8_t u8HalCnt = 0;
 	uint8_t u8pressFlagCnt = 0;
@@ -174,7 +185,7 @@ static void loop_task(void *p_param)
 			set_bFirst_WakeUp_status(false);
 			driver_adc_start();
 			os_delay(20);
-			u32Voltage = s_VolAvg;									//保存唤醒时读取的电池电压,其余所有与电池电压有关的操作都用这个数据
+			Set_u32Voltage_Value(s_VolAvg);									//保存唤醒时读取的电池电压,其余所有与电池电压有关的操作都用这个数据
 //			APP_PRINT_INFO1("[io_adc]  bFirst_WakeUp  s_VolAvg = %dmV",(uint32_t)s_VolAvg);
 			flashReadBuffer(Last_Motor_Status, 0x86D000, 4, 0);		//唤醒时读取之前存储的电机位置，用于判断电机是否需要转两圈
 			if(Last_Motor_Status[0] == false)
@@ -227,16 +238,15 @@ static void loop_task(void *p_param)
 		{
 			u8Cnt++;
 //			bShort_Sleep_flag = 0;
-			e_if_app_open = Get_App_for_open_flag();
 
-			if(Motor_Rst_Flag)
+			if(Get_Motor_Rst_Flag_Value() == true)		//电机解锁后会变成true，这里是为了判断是否需要关闭霍尔
 			{
 				Hal_Set_IntConfig_Off();						//解锁成功后，关闭霍尔开关的使能
-				Motor_Rst_Flag = false;
+				Set_Motor_Rst_Flag_Value(false);
 			}	
 			
-			if(e_if_app_open == open_from_tuya)					//来自tuya的开锁指令
-			{
+			if(Get_App_for_open_flag() == open_from_tuya)					//来自tuya的开锁指令
+			{				
 				Set_App_for_open_flag(no_open_from_tuya);
 				u8HalCnt = 0;
 				u8pressFlagCnt = 0;

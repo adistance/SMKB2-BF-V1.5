@@ -8,7 +8,6 @@
 
 #define LOCAL_LOGIC_EN          0               //是否有本地锁的逻辑
 
-extern unsigned int u32Voltage;
 typedef enum
 {
     MENU_MSG_TYPE_MAIN              = 1, /*主菜单类型*/
@@ -153,6 +152,9 @@ typedef enum
 
 void menu_task_init(void);
 bool menu_task_msg_send(T_MENU_MSG *menu_msg);
+void Set_u32Voltage_Value(unsigned int Voltage);
+unsigned int Get_u32Voltage_Value(void);
+
 bool background_task_msg_send(T_MENU_MSG *p_background_msg);
 bool menu_task_msg_send_front(T_MENU_MSG *p_menu_msg);   
 bool background_task_msg_send_front(T_MENU_MSG *p_menu_msg);

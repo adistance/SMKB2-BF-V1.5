@@ -22,7 +22,7 @@ extern "C" {
 #define UART_BAUD_RATE_57600                    (57600)
 #define UART_BAUD_RATE_115200                   (115200)
 
-#define DEFAULT_BOARD_ID                        "ML-EL610C-TY-101"   //16Bytes			"9318_FP_zdxm0101"
+#define DEFAULT_BOARD_ID                        "SMKB2-BF-0101"   //16Bytes			"9318_FP_zdxm0101"
 
 #define DEFAULT_PROTO_PWD                       (0x00000000)
 #define DEFAULT_BAUD_RATE                       UART_BAUD_RATE_115200

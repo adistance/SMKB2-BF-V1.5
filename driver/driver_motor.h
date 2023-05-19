@@ -72,7 +72,6 @@ typedef enum
 #define CHARGE_POWER_DATA   6200	//充电电压基本都超过4.3V
 #define FULL_POWER_DATA		6000
 extern float s_VolAvg;
-extern bool Motor_Rst_Flag;
 
 #define MOTOR_PWM_LEFT_TIMER_NUM             TIM1
 #define MOTOR_PWM_OUT_LEFT_PIN_PINMUX        timer_pwm1
@@ -81,6 +80,8 @@ extern bool Motor_Rst_Flag;
 #define MOTOR_PWM_RIGHT_TIMER_NUM             TIM2
 #define MOTOR_PWM_OUT_RIGHT_PIN_PINMUX        timer_pwm2
 
+void Set_Motor_Rst_Flag_Value(bool data);
+bool Get_Motor_Rst_Flag_Value(void);
 
 void driver_motor_init(void);
 void driver_motor_control(EM_MOTOR_CTRL_MODE mode, unsigned int mtime);

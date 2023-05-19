@@ -12,9 +12,10 @@ extern "C" {
 #define APP_BUILD_FIRMNAME  "SMKB2_BF_ML9318_msn3f6wd"
 
 // firmware version 
-#define TY_APP_VER_NUM       0x0101   //ota升级会判断这个，每次发版本都要修改这里
-#define TY_APP_VER_STR	     "1.1" 	  //ota升级会判断这个，每次发版本都要修改这里
-
+#define TY_APP_VER_NUM       0x0101   			//ota升级会判断这个，每次发版本都要修改这里
+#define TY_APP_VER_STR	     "1.1" 	  			//ota升级会判断这个，每次发版本都要修改这里
+					//system_setting.h文件下版本也需同步更改
+					
 // hardware version 
 #define TY_HARD_VER_NUM      0x0100
 #define TY_HARD_VER_STR	     "1.0" 	

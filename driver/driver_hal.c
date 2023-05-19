@@ -88,11 +88,10 @@ void gpio_hal_exit_dlps_config(void)
 	Pad_Config(PAIR_HAL2, PAD_SW_MODE, PAD_IS_PWRON, PAD_PULL_UP, PAD_OUT_DISABLE, PAD_OUT_HIGH);
 	GPIO_INTConfig(GPIO_GetPin(PAIR_HAL1), ENABLE); 
 	GPIO_MaskINTConfig(GPIO_GetPin(PAIR_HAL1), DISABLE);
-	set_bFirst_WakeUp_status(true);
-//	if(door_open_status() == E_OPEN_NONE)
-//	{
-//		set_b_HAL1_work_status = false;
-//	}
+	
+	//设置标志位，表示系统从低功耗中唤醒
+	set_bFirst_WakeUp_status(true);						
+
 }
 
 void driver_hal_init(void)

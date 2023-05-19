@@ -38,7 +38,15 @@ extern bool b_HAL_Check_Motor_Status;
 #define PWM_DUTY_COUNT_GET3(x)           ((x==0) ? (0): ((((1)*((x*(20))))-1)))  //20K
 //#define PWM_DUTY_COUNT_GET3(x)           ((x==0) ? (0): ((((5)*((x*(20))))-1)))  //4k
 
+void Set_Motor_Rst_Flag_Value(bool data)
+{
+	Motor_Rst_Flag = data;
+}
 
+bool Get_Motor_Rst_Flag_Value(void)
+{
+	return Motor_Rst_Flag;
+}
 EM_MOTOR_CTRL_MODE motorModeStateGet(void)
 {
     return st_motorCtrlInfo.ucMotorCtrlMode;
@@ -602,13 +610,15 @@ uint8_t charge_check(void)
 uint8_t get_battery_data(void)
 {
 	uint8_t u8Vol = 0;
+	unsigned int voltage_value;
+	voltage_value = Get_u32Voltage_Value();			//不使用s_VolAvg，是因为s_VolAvg在不断更新，系统只取用第一次读到的稳定的电压值
 	
-	if(u32Voltage >= FULL_POWER_DATA) 
+	if(voltage_value >= FULL_POWER_DATA) 
 		u8Vol = 100;
-	else if(u32Voltage <= EMPTY_POWER_DATA)
+	else if(voltage_value <= EMPTY_POWER_DATA)
 		u8Vol = 0;
 	else
-		u8Vol = (uint8_t)((u32Voltage - EMPTY_POWER_DATA) / 20);
+		u8Vol = (uint8_t)((voltage_value - EMPTY_POWER_DATA) / 20);
 //		u8Vol = (uint8_t)(((uint32_t)u32Voltage - EMPTY_POWER_DATA) / 20);
 
 	if(u8Vol > 100)
